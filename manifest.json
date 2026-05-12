@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "BA Pop-up Interrupter",
+  "version": "1.0",
+
+  "action": {
+    "default_popup": "popup.html"
+  },
+
+  "options_page": "options.html",
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "permissions": ["storage", "offscreen", "windows", "alarms"],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["images/*.png", "sounds/*.mp3", "offscreen.html", "overlay.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

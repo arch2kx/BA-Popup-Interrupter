@@ -1,0 +1,53 @@
+/* ── base ── */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: sans-serif;
+    padding: 16px;
+}
+
+h2, h3 {
+    margin-bottom: 12px;
+}
+
+/* ── form controls ── */
+label {
+    display: block;
+    margin-bottom: 4px;
+}
+
+input[type="number"],
+input[type="text"] {
+    display: block;
+    width: 100%;
+    padding: 6px 8px;
+    margin-bottom: 12px;
+}
+
+button {
+    padding: 6px 14px;
+    cursor: pointer;
+}
+
+/* ── character list (options page) ── */
+#character-list {
+    list-style: none;
+    margin-bottom: 16px;
+}
+
+#character-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+#character-list img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
