@@ -8,11 +8,47 @@
     <body>
         <h2>Settings</h2>
 
-        <label for="interval">Popup interval (ms)</label>
-        <input id="interval" type="number" value="5000" min="1000">
+        <h3>Interval</h3>
+        <label><input type="radio" name="intervalMode" value="fixed"> Fixed</label>
+        <label><input type="radio" name="intervalMode" value="random"> Random</label>
+
+        <div id="fixed-interval">
+            <label for="interval">Interval (ms)</label>
+            <input id="interval" type="number" value="5000" min="1000">
+        </div>
+
+        <div id="random-interval">
+            <label for="intervalMin">Min (ms)</label>
+            <input id="intervalMin" type="number" value="3000" min="1000">
+            <label for="intervalMax">Max (ms)</label>
+            <input id="intervalMax" type="number" value="15000" min="1000">
+        </div>
+
+        <h3>Duration</h3>
+        <label for="duration">Popup duration (ms)</label>
+        <input id="duration" type="number" value="3000" min="500">
+
+        <h3>Popup Size</h3>
+        <label for="popupSize">Size (px, max 800)</label>
+        <input id="popupSize" type="number" value="400" min="100" max="800">
 
         <h3>Characters</h3>
+        <label><input type="radio" name="charMode" value="shuffle"> Shuffled deck</label>
+        <label><input type="radio" name="charMode" value="weighted"> Weighted</label>
+        <label><input type="radio" name="charMode" value="single"> Single character</label>
+
         <ul id="character-list"></ul>
+
+        <h3>Behaviour</h3>
+        <label><input type="checkbox" id="mute"> Mute</label>
+
+        <label for="dndStart">Do not disturb from</label>
+        <input id="dndStart" type="time">
+        <label for="dndEnd">to</label>
+        <input id="dndEnd" type="time">
+
+        <label for="blacklist">URL blacklist (one per line)</label>
+        <textarea id="blacklist" rows="4" placeholder="https://example.com"></textarea>
 
         <button id="save">Save</button>
 

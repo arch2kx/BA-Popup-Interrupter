@@ -58,7 +58,7 @@ style.textContent = `
     position: fixed;
     bottom: 50px;
     right: 50px;
-    width: 300px;
+    width: 800px;
     z-index: 2147483647;
     opacity: 0;
     transition: opacity 0.2s ease;

@@ -4,7 +4,6 @@ const baDefaults = [
     { image: "images/izuna.png",   sound: "sounds/izuna-nin-nin.mp3" }
 ];
 
-// Fisher-Yates shuffle — see content.js for explanation.
 function shuffle(arr) {
     const a = [...arr];
     for (let i = a.length - 1; i > 0; i--) {
@@ -14,16 +13,19 @@ function shuffle(arr) {
     return a;
 }
 
-let deck = shuffle(baDefaults);
+let deck = [];
 
-function nextCharacter(overrides) {
-    if (deck.length === 0) deck = shuffle(baDefaults);
-    const character = deck.pop();
-    const index = baDefaults.indexOf(character);
-    return {
-        image: (overrides && overrides[index]) ? overrides[index] : chrome.runtime.getURL(character.image),
-        sound: chrome.runtime.getURL(character.sound)
-    };
+// Build a weighted deck by repeating each character index by its weight,
+// then shuffling. e.g. weights [3,1,1] means Mika appears 3 out of 5 draws.
+function rebuildDeck(weights) {
+    const expanded = baDefaults.flatMap((_, i) => Array(weights[i] || 1).fill(i));
+    deck = shuffle(expanded);
+}
+
+function nextIndex(charMode, weights, singleIndex) {
+    if (charMode === "single") return singleIndex || 0;
+    if (deck.length === 0) rebuildDeck(weights || [1, 1, 1]);
+    return deck.pop();
 }
 
 async function ensureOffscreenDocument() {
@@ -36,51 +38,94 @@ async function ensureOffscreenDocument() {
     });
 }
 
-// Opens a frameless popup window showing the character image.
-// The overlay closes itself after 3 seconds.
+// Returns true if current time is inside the do-not-disturb window.
+// Handles overnight ranges e.g. 22:00 to 06:00.
+function isDnd(dndStart, dndEnd) {
+    if (!dndStart || !dndEnd) return false;
+    const now = new Date();
+    const cur = now.getHours() * 60 + now.getMinutes();
+    const [sh, sm] = dndStart.split(":").map(Number);
+    const [eh, em] = dndEnd.split(":").map(Number);
+    const start = sh * 60 + sm;
+    const end   = eh * 60 + em;
+    return start <= end ? (cur >= start && cur < end) : (cur >= start || cur < end);
+}
+
+// Returns true if the active tab URL starts with any blacklisted entry.
+async function isBlacklisted(blacklist) {
+    if (!blacklist || blacklist.length === 0) return false;
+    const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    if (!tab || !tab.url) return false;
+    return blacklist.some(entry => tab.url.startsWith(entry));
+}
+
 async function triggerPopup() {
-    const { enabled, interval, imageOverrides } = await chrome.storage.local.get(["enabled", "interval", "imageOverrides"]);
-    if (!enabled) return;
+    const s = await chrome.storage.local.get([
+        "enabled", "intervalMode", "interval", "intervalMin", "intervalMax",
+        "duration", "popupSize",
+        "charMode", "imageOverrides", "weights", "singleIndex",
+        "mute", "dndStart", "dndEnd", "blacklist"
+    ]);
 
-    const character = nextCharacter(imageOverrides);
+    if (!s.enabled) return;
+    if (isDnd(s.dndStart, s.dndEnd)) return;
+    if (await isBlacklisted(s.blacklist)) return;
 
-    // Pass the image URL to the overlay via the query string so it knows
-    // what to display without needing a separate message round-trip.
+    const index     = nextIndex(s.charMode, s.weights, s.singleIndex);
+    const character = baDefaults[index];
+    const imageUrl  = (s.imageOverrides && s.imageOverrides[index])
+                        ? s.imageOverrides[index]
+                        : chrome.runtime.getURL(character.image);
+    const soundUrl  = chrome.runtime.getURL(character.sound);
+    const duration  = s.duration || 3000;
+    const size      = Math.min(800, s.popupSize || 400);
+
     const overlayUrl = chrome.runtime.getURL("overlay.html")
-        + "?image=" + encodeURIComponent(character.image);
+        + "?image="    + encodeURIComponent(imageUrl)
+        + "&duration=" + duration;
 
     chrome.windows.create({
         url: overlayUrl,
         type: "popup",
-        width: 220,
-        height: 220,
+        width: size,
+        height: size,
         focused: false
     });
 
-    await ensureOffscreenDocument();
-    chrome.runtime.sendMessage({ type: "play-sound-offscreen", sound: character.sound });
+    if (!s.mute) {
+        await ensureOffscreenDocument();
+        chrome.runtime.sendMessage({ type: "play-sound-offscreen", sound: soundUrl });
+    }
+
+    scheduleNext(s);
 }
 
-// Use an alarm instead of setInterval — service workers can be suspended
-// by the browser between events and setInterval would stop firing.
-// Alarms wake the service worker up reliably on schedule.
-chrome.alarms.create("popup-alarm", { periodInMinutes: 1 / 12 }); // every 5 seconds default
+// For random mode, pick a fresh random delay each time.
+// For fixed mode, use the saved interval.
+// delayInMinutes is used instead of periodInMinutes so each trigger
+// schedules the next one, allowing the delay to vary each time.
+function scheduleNext(s) {
+    let ms;
+    if (s.intervalMode === "random") {
+        const min = s.intervalMin || 3000;
+        const max = s.intervalMax || 15000;
+        ms = Math.random() * (max - min) + min;
+    } else {
+        ms = s.interval || 5000;
+    }
+    chrome.alarms.create("popup-alarm", { delayInMinutes: ms / 60000 });
+}
+
+chrome.storage.local.get([
+    "intervalMode", "interval", "intervalMin", "intervalMax"
+], (res) => scheduleNext(res));
 
 chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === "popup-alarm") triggerPopup();
 });
 
-// Recreate the alarm with the new interval when settings change.
-chrome.storage.onChanged.addListener((changes) => {
-    if (changes.interval) {
-        const minutes = changes.interval.newValue / 60000;
-        chrome.alarms.create("popup-alarm", { periodInMinutes: minutes });
-    }
-});
-
-chrome.runtime.onMessage.addListener((message) => {
-    if (message.type !== "play-sound") return;
-    ensureOffscreenDocument().then(() => {
-        chrome.runtime.sendMessage({ type: "play-sound-offscreen", sound: message.sound });
-    });
+chrome.storage.onChanged.addListener(() => {
+    chrome.storage.local.get([
+        "intervalMode", "interval", "intervalMin", "intervalMax"
+    ], (res) => scheduleNext(res));
 });
