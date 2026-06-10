@@ -10,10 +10,11 @@
   "options_page": "options.html",
 
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
 
-  "permissions": ["storage", "offscreen", "windows", "alarms"],
+  "permissions": ["storage", "offscreen", "windows", "alarms", "tabs"],
 
   "web_accessible_resources": [
     {
