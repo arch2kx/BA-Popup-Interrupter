@@ -7,8 +7,18 @@
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <h3>BA Pop-up Interrupter</h3>
-        <button id="toggle">OFF</button>
-        <script src="popup.js"></script>
+        <header>
+            <h3>BA Pop-up Interrupter</h3>
+            <p class="credit">Made by arch2kx</p>
+        </header>
+
+        <div class="controls">
+            <button id="toggle">OFF</button>
+            <label class="checkbox-row"><input type="checkbox" id="mute"> Mute</label>
+            <button id="block-site">Block this site</button>
+            <button id="open-options">More settings...</button>
+        </div>
+
+        <script type="module" src="popup.js"></script>
     </body>
 </html>

@@ -1,28 +1,34 @@
 import { getSettings, setSettings, isBlacklisted } from "./shared.js";
-const toggleBtn = document.getElementById("toggle");
-const muteInput = document.getElementById("mute");
-const blockSiteBtn = document.getElementById("block-site");
-const openOptionsBtn = document.getElementById("open-options");
-async function getActiveTabUrl() {
+
+const toggleBtn      = document.getElementById("toggle") as HTMLButtonElement | null;
+const muteInput      = document.getElementById("mute") as HTMLInputElement | null;
+const blockSiteBtn   = document.getElementById("block-site") as HTMLButtonElement | null;
+const openOptionsBtn = document.getElementById("open-options") as HTMLButtonElement | null;
+
+async function getActiveTabUrl(): Promise<string | null> {
     const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
     return tab?.url ?? null;
 }
-function originOf(url) {
+
+function originOf(url: string): string {
     try {
         return new URL(url).origin;
-    }
-    catch {
+    } catch {
         return url;
     }
 }
-async function init() {
+
+async function init(): Promise<void> {
     const settings = await getSettings();
+
     if (toggleBtn) {
         toggleBtn.textContent = settings.enabled ? "ON" : "OFF";
     }
+
     if (muteInput) {
         muteInput.checked = settings.mute;
     }
+
     if (blockSiteBtn) {
         const url = await getActiveTabUrl();
         const blacklisted = url ? isBlacklisted(url, settings.blacklist) : false;
@@ -30,6 +36,7 @@ async function init() {
         blockSiteBtn.disabled = !url;
     }
 }
+
 if (toggleBtn) {
     toggleBtn.addEventListener("click", async () => {
         const settings = await getSettings();
@@ -38,29 +45,34 @@ if (toggleBtn) {
         await setSettings({ enabled });
     });
 }
+
 if (muteInput) {
     muteInput.addEventListener("change", async () => {
         await setSettings({ mute: muteInput.checked });
     });
 }
+
 if (blockSiteBtn) {
     blockSiteBtn.addEventListener("click", async () => {
         const url = await getActiveTabUrl();
-        if (!url)
-            return;
+        if (!url) return;
+
         const settings = await getSettings();
         const blacklisted = isBlacklisted(url, settings.blacklist);
+
         const blacklist = blacklisted
             ? settings.blacklist.filter(entry => !url.startsWith(entry))
             : [...settings.blacklist, originOf(url)];
+
         await setSettings({ blacklist });
         blockSiteBtn.textContent = blacklisted ? "Block this site" : "Unblock this site";
     });
 }
+
 if (openOptionsBtn) {
     openOptionsBtn.addEventListener("click", () => {
         chrome.runtime.openOptionsPage();
     });
 }
+
 init();
-//# sourceMappingURL=popup.js.map
