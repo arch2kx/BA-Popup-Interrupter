@@ -1,132 +1,171 @@
-const defaults = [
-    { name: "Mika",    image: "images/mika.png" },
-    { name: "Hoshino", image: "images/hoshino.png" },
-    { name: "Izuna",   image: "images/izuna.png" }
-];
-
-function updateIntervalUI(mode) {
-    document.getElementById("fixed-interval").style.display  = mode === "fixed"  ? "block" : "none";
-    document.getElementById("random-interval").style.display = mode === "random" ? "block" : "none";
+import { CHARACTERS, getSettings, setSettings } from "./shared.js";
+function updateintervalui(mode) {
+    const fixedel = document.getElementById("fixed-interval");
+    const randomel = document.getElementById("random-interval");
+    if (fixedel)
+        fixedel.style.display = mode === "fixed" ? "block" : "none";
+    if (randomel)
+        randomel.style.display = mode === "random" ? "block" : "none";
 }
-
-document.querySelectorAll("[name=intervalMode]").forEach(r => {
-    r.addEventListener("change", () => updateIntervalUI(r.value));
-});
-
-function renderCharacters(overrides, weights, singleIndex) {
+function updatecharacterui(mode) {
+    document.querySelectorAll(".weight-control").forEach(el => {
+        el.style.display = mode === "weighted" ? "flex" : "none";
+    });
+    document.querySelectorAll(".single-control").forEach(el => {
+        el.style.display = mode === "single" ? "flex" : "none";
+    });
+}
+// Renders one <li> per character into #character-list, with an image
+// override field, a weight field (weighted mode), and a "use this
+// character" radio (single mode).
+function rendercharacters(settings) {
     const list = document.getElementById("character-list");
+    if (!list)
+        return;
     list.innerHTML = "";
-
-    defaults.forEach((character, i) => {
+    CHARACTERS.forEach((character, i) => {
         const li = document.createElement("li");
-
-        const preview = document.createElement("img");
-        preview.src = (overrides && overrides[i]) || chrome.runtime.getURL(character.image);
-
-        const nameLabel = document.createElement("span");
-        nameLabel.textContent = character.name;
-
-        // Radio button for single character mode.
-        const radio = document.createElement("input");
-        radio.type = "radio";
-        radio.name = "singleChar";
-        radio.value = i;
-        radio.checked = singleIndex === i;
-
-        // Weight input — how many times this character appears in the deck.
-        const weightInput = document.createElement("input");
-        weightInput.type = "number";
-        weightInput.min = 1;
-        weightInput.max = 10;
-        weightInput.value = (weights && weights[i]) || 1;
-        weightInput.dataset.weightIndex = i;
-        weightInput.placeholder = "weight";
-
-        // Custom image URL override.
+        const img = document.createElement("img");
+        img.src = chrome.runtime.getURL(character.image);
+        img.alt = character.name;
+        li.appendChild(img);
+        const name = document.createElement("span");
+        name.textContent = character.name;
+        li.appendChild(name);
         const urlInput = document.createElement("input");
         urlInput.type = "text";
-        urlInput.placeholder = "Custom image URL (optional)";
-        urlInput.value = (overrides && overrides[i]) || "";
-        urlInput.dataset.urlIndex = i;
-
-        urlInput.addEventListener("input", () => {
-            preview.src = urlInput.value.trim() || chrome.runtime.getURL(character.image);
-        });
-
-        li.appendChild(preview);
-        li.appendChild(nameLabel);
-        li.appendChild(radio);
-        li.appendChild(weightInput);
+        urlInput.placeholder = "Image URL override";
+        urlInput.dataset["urlIndex"] = String(i);
+        urlInput.value = settings.imageOverrides[i] ?? "";
         li.appendChild(urlInput);
+        const weightWrap = document.createElement("div");
+        weightWrap.className = "weight-control";
+        const weightLabel = document.createElement("label");
+        weightLabel.textContent = "Weight";
+        const weightInput = document.createElement("input");
+        weightInput.type = "Number";
+        weightInput.min = "1";
+        weightInput.dataset["weightIndex"] = String(i);
+        weightInput.value = String(settings.weights[i] ?? 1);
+        weightWrap.appendChild(weightLabel);
+        weightWrap.appendChild(weightInput);
+        li.appendChild(weightWrap);
+        const singleWrap = document.createElement("div");
+        singleWrap.className = "single-control";
+        const singleLabel = document.createElement("label");
+        const singleRadio = document.createElement("input");
+        singleRadio.type = "radio";
+        singleRadio.name = "singlechar";
+        singleRadio.value = String(i);
+        singleRadio.checked = settings.singleIndex === i;
+        singleLabel.appendChild(singleRadio);
+        singleLabel.appendChild(document.createTextNode(" Use this character"));
+        singleWrap.appendChild(singleLabel);
+        li.appendChild(singleWrap);
         list.appendChild(li);
     });
+    updatecharacterui(settings.charMode);
 }
-
-chrome.storage.local.get([
-    "intervalMode", "interval", "intervalMin", "intervalMax",
-    "duration", "popupSize",
-    "charMode", "imageOverrides", "weights", "singleIndex",
-    "mute", "dndStart", "dndEnd", "blacklist"
-], (res) => {
-    const mode = res.intervalMode || "fixed";
-    document.querySelector(`[name=intervalMode][value=${mode}]`).checked = true;
-    updateIntervalUI(mode);
-
-    document.getElementById("interval").value    = res.interval    || 5000;
-    document.getElementById("intervalMin").value = res.intervalMin || 3000;
-    document.getElementById("intervalMax").value = res.intervalMax || 15000;
-    document.getElementById("duration").value    = res.duration    || 3000;
-    document.getElementById("popupSize").value   = res.popupSize   || 400;
-
-    const charMode = res.charMode || "shuffle";
-    document.querySelector(`[name=charMode][value=${charMode}]`).checked = true;
-
-    renderCharacters(res.imageOverrides, res.weights, res.singleIndex ?? 0);
-
-    document.getElementById("mute").checked    = res.mute      || false;
-    document.getElementById("dndStart").value  = res.dndStart  || "";
-    document.getElementById("dndEnd").value    = res.dndEnd    || "";
-    document.getElementById("blacklist").value = (res.blacklist || []).join("\n");
+document.querySelectorAll("[name=intervalMode]").forEach(r => {
+    r.addEventListener("change", () => updateintervalui(r.value));
 });
-
-document.getElementById("save").onclick = () => {
-    const intervalMode = document.querySelector("[name=intervalMode]:checked").value;
-    const interval     = Number(document.getElementById("interval").value);
-    const intervalMin  = Number(document.getElementById("intervalMin").value);
-    const intervalMax  = Number(document.getElementById("intervalMax").value);
-    const duration     = Number(document.getElementById("duration").value);
-    const popupSize    = Math.min(800, Number(document.getElementById("popupSize").value));
-    const charMode     = document.querySelector("[name=charMode]:checked").value;
-    const mute         = document.getElementById("mute").checked;
-    const dndStart     = document.getElementById("dndStart").value;
-    const dndEnd       = document.getElementById("dndEnd").value;
-    const blacklist    = document.getElementById("blacklist").value
-                            .split("\n").map(s => s.trim()).filter(Boolean);
-
-    if (intervalMode === "fixed" && interval < 1000) {
-        alert("Minimum interval is 1000ms.");
-        return;
-    }
-    if (intervalMode === "random" && intervalMin >= intervalMax) {
-        alert("Min must be less than Max.");
-        return;
-    }
-
-    const imageOverrides = Array.from(document.querySelectorAll("[data-url-index]"))
-                                .map(i => i.value.trim());
-    const weights        = Array.from(document.querySelectorAll("[data-weight-index]"))
-                                .map(i => Number(i.value) || 1);
-    const singleIndex    = Number(document.querySelector("[name=singleChar]:checked")?.value ?? 0);
-
-    chrome.storage.local.set({
-        intervalMode, interval, intervalMin, intervalMax,
-        duration, popupSize,
-        charMode, imageOverrides, weights, singleIndex,
-        mute, dndStart, dndEnd, blacklist
-    }, () => {
-        const btn = document.getElementById("save");
-        btn.textContent = "Saved!";
-        btn.disabled = true;
-        setTimeout(() => { btn.textContent = "Save"; btn.disabled = false; }, 1500);
-    });
-};
+document.querySelectorAll("[name=charMode]").forEach(r => {
+    r.addEventListener("change", () => updatecharacterui(r.value));
+});
+getSettings().then((settings) => {
+    const intervalmoderadio = document.querySelector(`[name=intervalMode][value="${settings.intervalMode}"]`);
+    if (intervalmoderadio)
+        intervalmoderadio.checked = true;
+    updateintervalui(settings.intervalMode);
+    const intervalinput = document.getElementById("interval");
+    if (intervalinput)
+        intervalinput.value = String(settings.interval);
+    const intervalmininput = document.getElementById("intervalMin");
+    if (intervalmininput)
+        intervalmininput.value = String(settings.intervalMin);
+    const intervalmaxinput = document.getElementById("intervalMax");
+    if (intervalmaxinput)
+        intervalmaxinput.value = String(settings.intervalMax);
+    const durationinput = document.getElementById("duration");
+    if (durationinput)
+        durationinput.value = String(settings.duration);
+    const popupsizeinput = document.getElementById("popupSize");
+    if (popupsizeinput)
+        popupsizeinput.value = String(settings.popupSize);
+    const charmoderadio = document.querySelector(`[name=charMode][value="${settings.charMode}"]`);
+    if (charmoderadio)
+        charmoderadio.checked = true;
+    rendercharacters(settings);
+    const muteInput = document.getElementById("mute");
+    if (muteInput)
+        muteInput.checked = settings.mute;
+    const dndstartinput = document.getElementById("dndStart");
+    if (dndstartinput)
+        dndstartinput.value = settings.dndStart;
+    const dndendinput = document.getElementById("dndEnd");
+    if (dndendinput)
+        dndendinput.value = settings.dndEnd;
+    const blacklistinput = document.getElementById("blacklist");
+    if (blacklistinput)
+        blacklistinput.value = settings.blacklist.join("\n");
+});
+const savebtn = document.getElementById("save");
+if (savebtn) {
+    savebtn.onclick = () => {
+        const intervalmoderadio = document.querySelector("[name=intervalMode]:checked");
+        const intervalMode = (intervalmoderadio ? intervalmoderadio.value : "fixed");
+        const intervalel = document.getElementById("interval");
+        const interval = Number(intervalel?.value ?? 0);
+        const intervalminel = document.getElementById("intervalMin");
+        const intervalMin = Number(intervalminel?.value ?? 0);
+        const intervalmaxel = document.getElementById("intervalMax");
+        const intervalMax = Number(intervalmaxel?.value ?? 0);
+        const durationel = document.getElementById("duration");
+        const duration = Number(durationel?.value ?? 0);
+        const popupsizeel = document.getElementById("popupSize");
+        const popupSize = Math.min(800, Number(popupsizeel?.value ?? 0));
+        const charmoderadio = document.querySelector("[name=charMode]:checked");
+        const charMode = (charmoderadio ? charmoderadio.value : "shuffle");
+        const muteel = document.getElementById("mute");
+        const mute = muteel ? muteel.checked : false;
+        const dndstartel = document.getElementById("dndStart");
+        const dndStart = dndstartel ? dndstartel.value : "";
+        const dndendel = document.getElementById("dndEnd");
+        const dndEnd = dndendel ? dndendel.value : "";
+        const blacklistel = document.getElementById("blacklist");
+        const blacklist = blacklistel
+            ? blacklistel.value.split("\n").map(s => s.trim()).filter(Boolean)
+            : [];
+        if (intervalMode === "fixed" && interval < 1000) {
+            alert("minimum interval is 1000ms.");
+            return;
+        }
+        if (intervalMode === "random" && intervalMin >= intervalMax) {
+            alert("min must be less than max.");
+            return;
+        }
+        const imageOverrides = Array.from(document.querySelectorAll("[data-url-index]"))
+            .map(i => i.value.trim());
+        const weights = Array.from(document.querySelectorAll("[data-weight-index]"))
+            .map(i => Number(i.value) || 1);
+        const singlecharradio = document.querySelector("[name=singlechar]:checked");
+        const singleIndex = Number(singlecharradio?.value ?? 0);
+        setSettings({
+            intervalMode, interval, intervalMin, intervalMax,
+            duration, popupSize,
+            charMode, imageOverrides, weights, singleIndex,
+            mute, dndStart, dndEnd, blacklist
+        }).then(() => {
+            const btn = document.getElementById("save");
+            if (btn) {
+                btn.textContent = "Saved!";
+                btn.disabled = true;
+                setTimeout(() => {
+                    btn.textContent = "Save";
+                    btn.disabled = false;
+                }, 1500);
+            }
+        });
+    };
+}
+//# sourceMappingURL=options.js.map

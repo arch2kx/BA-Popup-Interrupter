@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <title>Settings</title>
-        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="options.css">
     </head>
     <body>
         <h2>Settings</h2>
@@ -14,23 +14,23 @@
 
         <div id="fixed-interval">
             <label for="interval">Interval (ms)</label>
-            <input id="interval" type="number" value="5000" min="1000">
+            <input id="interval" type="Number" value="5000" min="1000">
         </div>
 
         <div id="random-interval">
             <label for="intervalMin">Min (ms)</label>
-            <input id="intervalMin" type="number" value="3000" min="1000">
+            <input id="intervalMin" type="Number" value="3000" min="1000">
             <label for="intervalMax">Max (ms)</label>
-            <input id="intervalMax" type="number" value="15000" min="1000">
+            <input id="intervalMax" type="Number" value="15000" min="1000">
         </div>
 
         <h3>Duration</h3>
         <label for="duration">Popup duration (ms)</label>
-        <input id="duration" type="number" value="3000" min="500">
+        <input id="duration" type="Number" value="3000" min="500">
 
         <h3>Popup Size</h3>
         <label for="popupSize">Size (px, max 800)</label>
-        <input id="popupSize" type="number" value="400" min="100" max="800">
+        <input id="popupSize" type="Number" value="400" min="100" max="800">
 
         <h3>Characters</h3>
         <label><input type="radio" name="charMode" value="shuffle"> Shuffled deck</label>
@@ -52,6 +52,6 @@
 
         <button id="save">Save</button>
 
-        <script src="options.js"></script>
+        <script type="module" src="options.js"></script>
     </body>
 </html>
