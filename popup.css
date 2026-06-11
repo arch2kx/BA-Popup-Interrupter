@@ -1,0 +1,64 @@
+html {
+    width: 300px;  /* Max: 800px */
+    height: 300px; /* Max: 600px */
+}
+
+/* ── Theme ── */
+:root {
+    --bg: #f9fafb;
+    --surface: #ffffff;
+    --text: #181818;
+    --text-muted: #868686;
+    --border: #dcdcdc;
+    --accent: #1a99dc;
+    --radius: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #161616;
+        --surface: #222222;
+        --text: #f7f7f7;
+        --text-muted: #a9a9a9;
+        --border: #363636;
+        --accent: #1a99dc;
+    }
+}
+
+/* ── Base ── */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: "Noto Sans", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px 24px 88px;
+}
+
+h1 {
+    max-width: 560px;
+    margin: 0 auto 16px;
+    justify-content: center;
+    text-align: center;
+    font-size: 30px;
+}
+
+button {
+    font-family: "Noto Sans", sans-serif;
+    padding: 10px 25px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: default;
+}

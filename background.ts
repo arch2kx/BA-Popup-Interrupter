@@ -37,12 +37,22 @@ async function ensureOffscreenDocument(): Promise<void> {
     });
 }
 
-// Returns true if the active tab's URL is blacklisted.
-async function isActiveTabBlacklisted(blacklist: string[]): Promise<boolean> {
-    if (!blacklist || blacklist.length === 0) return false;
-    const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-    if (!tab || !tab.url) return false;
-    return isBlacklisted(tab.url, blacklist);
+// Tabs that were already open before content.js was registered (e.g. before
+// the extension was installed/reloaded) won't have the content script
+// injected yet, so the message goes nowhere. Inject it on demand and retry.
+async function showPopupInTab(tabId: number, image: string, duration: number, size: number): Promise<void> {
+    const message = { type: "show-popup", image, duration, size };
+
+    try {
+        await chrome.tabs.sendMessage(tabId, message);
+    } catch {
+        try {
+            await chrome.scripting.executeScript({ target: { tabId }, files: ["content.js"] });
+            await chrome.tabs.sendMessage(tabId, message);
+        } catch {
+            // Page doesn't allow content scripts (e.g. chrome:// pages, the Web Store).
+        }
+    }
 }
 
 async function triggerPopup(): Promise<void> {
@@ -50,7 +60,10 @@ async function triggerPopup(): Promise<void> {
 
     if (!s.enabled) return;
     if (isDnd(s.dndStart, s.dndEnd)) return;
-    if (await isActiveTabBlacklisted(s.blacklist)) return;
+
+    const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    if (!tab?.id || !tab.url) return;
+    if (isBlacklisted(tab.url, s.blacklist)) return;
 
     const index     = nextIndex(s.charMode, s.weights, s.singleIndex);
     const character = CHARACTERS[index]!;
@@ -59,19 +72,9 @@ async function triggerPopup(): Promise<void> {
                         : chrome.runtime.getURL(character.image);
     const soundUrl  = chrome.runtime.getURL(character.sound);
     const duration  = s.duration || 3000;
-    const size      = Math.min(800, s.popupSize || 400);
+    const size      = Math.min(600, s.popupSize || 400);
 
-    const overlayUrl = chrome.runtime.getURL("overlay.html")
-        + "?image="    + encodeURIComponent(imageUrl)
-        + "&duration=" + duration;
-
-    chrome.windows.create({
-        url: overlayUrl,
-        type: "popup",
-        width: size,
-        height: size,
-        focused: false
-    });
+    showPopupInTab(tab.id, imageUrl, duration, size);
 
     if (!s.mute) {
         if (chrome.offscreen) {
@@ -100,6 +103,10 @@ function scheduleNext(s: Pick<Settings, "intervalMode" | "interval" | "intervalM
     } else {
         ms = s.interval || 5000;
     }
+    // Floor at 1s: chrome.alarms has no minimum delay for unpacked extensions,
+    // so a tiny/zero interval would otherwise refire near-instantly and flood
+    // the screen with popup windows.
+    ms = Math.max(ms, 1000);
     chrome.alarms.create("popup-alarm", { delayInMinutes: ms / 60000 });
 }
 

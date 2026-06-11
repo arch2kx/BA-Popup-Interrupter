@@ -1,3 +1,25 @@
+/* ── Theme ── */
+:root {
+    --bg: #f9fafb;
+    --surface: #ffffff;
+    --text: #181818;
+    --text-muted: #868686;
+    --border: #dcdcdc;
+    --accent: #1a99dc;
+    --radius: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #161616;
+        --surface: #222222;
+        --text: #f7f7f7;
+        --text-muted: #a9a9a9;
+        --border: #363636;
+        --accent: #1a99dc;
+    }
+}
+
 /* ── Base ── */
 * {
     box-sizing: border-box;
@@ -6,50 +28,150 @@
 }
 
 body {
-    font-family: sans-serif;
-    padding: 16px;
+    font-family: "Noto Sans", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px 24px 88px;
 }
 
-h2, h3 {
-    margin-bottom: 12px;
+h2 {
+    max-width: 560px;
+    margin: 0 auto 16px;
+    font-size: 30px;
+}
+
+/* ── Sections / rows ── */
+.section {
+    max-width: 560px;
+    margin: 0 auto;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 8px 14px;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.row-label,
+.row-label label {
+    font-family: "Noto Sans", sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
 }
 
 /* ── Form controls ── */
-label {
-    display: block;
-    margin-bottom: 4px;
+.row-control label {
+    font-family: "Noto Sans", sans-serif;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-right: 14px;
+    font-size: 14px;
+    font-weight: normal;
+    color: var(--text);
+}
+
+.field-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.field-row span {
+    font-family: "Noto Sans", sans-serif;
+    font-size: 14px;
+    color: var(--text-muted);
 }
 
 input[type="Number"],
-input[type="text"] {
-    display: block;
+input[type="text"],
+input[type="time"],
+textarea {
+    font-family: "Noto Sans", sans-serif;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 10px;
+    font-size: 14px;
+    background: var(--surface);
+    color: var(--text);
+}
+
+input:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--accent);
+}
+
+textarea {
     width: 100%;
-    padding: 6px 8px;
-    margin-bottom: 12px;
+    resize: vertical;
 }
 
 button {
-    padding: 6px 14px;
+    font-family: "Noto Sans", sans-serif;
+    padding: 10px 25px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
     cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: default;
 }
 
 /* ── Character list (options page) ── */
 #character-list {
     list-style: none;
-    margin-bottom: 16px;
+    width: 100%;
 }
 
 #character-list li {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 8px;
+    padding: 6px 0;
 }
 
 #character-list img {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius);
     object-fit: contain;
+    flex-shrink: 0;
+}
+
+#character-list span {
+    font-family: "Noto Sans", sans-serif;
+    flex: 0 0 60px;
+    font-size: 14px;
+    text-transform: capitalize;
+}
+
+#character-list input[type="text"] {
+    flex: 1;
 }
 
 /* ── per-character mode controls ── */
@@ -58,16 +180,37 @@ button {
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-shrink: 0;
 }
 
-.weight-control input[type="Number"],
 .weight-control label,
 .single-control label {
-    width: auto;
+    font-family: "Noto Sans", sans-serif;
     margin: 0;
+    font-size: 14px;
+    font-weight: normal;
 }
 
-#character-list input[type="text"] {
-    flex: 1;
-    margin-bottom: 0;
+.weight-control input[type="Number"] {
+    width: 60px;
+}
+
+/* ── Sticky save bar ── */
+.save-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    padding: 12px 24px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+}
+
+.save-bar-inner {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    max-width: 560px;
 }

@@ -8,49 +8,97 @@
     <body>
         <h2>Settings</h2>
 
-        <h3>Interval</h3>
-        <label><input type="radio" name="intervalMode" value="fixed"> Fixed</label>
-        <label><input type="radio" name="intervalMode" value="random"> Random</label>
+        <section class="section">
+            <div class="row">
+                <div class="row-label">Interval mode</div>
+                <div class="row-control">
+                    <label><input type="radio" name="intervalMode" value="fixed"> Fixed</label>
+                    <label><input type="radio" name="intervalMode" value="random"> Random</label>
+                </div>
+            </div>
 
-        <div id="fixed-interval">
-            <label for="interval">Interval (ms)</label>
-            <input id="interval" type="Number" value="5000" min="1000">
+            <div class="row" id="fixed-interval">
+                <div class="row-label"><label for="interval">Interval (ms)</label></div>
+                <div class="row-control">
+                    <input id="interval" type="Number" value="5000" min="1000">
+                </div>
+            </div>
+
+            <div class="row" id="random-interval">
+                <div class="row-label">Interval range (ms)</div>
+                <div class="row-control field-row">
+                    <label for="intervalMin">Min</label>
+                    <input id="intervalMin" type="Number" value="3000" min="1000">
+                    <label for="intervalMax">Max</label>
+                    <input id="intervalMax" type="Number" value="15000" min="1000">
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="row">
+                <div class="row-label"><label for="duration">Duration (ms)</label></div>
+                <div class="row-control">
+                    <input id="duration" type="Number" value="3000" min="500">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="row-label"><label for="popupSize">Popup size (in px., max 600)</label></div>
+                <div class="row-control">
+                    <input id="popupSize" type="Number" value="400" min="100" max="600">
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="row">
+                <div class="row-label">Characters</div>
+                <div class="row-control">
+                    <label><input type="radio" name="charMode" value="shuffle"> Shuffled deck</label>
+                    <label><input type="radio" name="charMode" value="weighted"> Weighted</label>
+                    <label><input type="radio" name="charMode" value="single"> Single character</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="row-label"></div>
+                <div class="row-control">
+                    <ul id="character-list"></ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="row">
+                <div class="row-label"><label for="mute">Mute</label></div>
+                <div class="row-control">
+                    <input type="checkbox" id="mute">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="row-label"><label for="dndStart">Do not disturb</label></div>
+                <div class="row-control field-row">
+                    <input id="dndStart" type="time">
+                    <span>to</span>
+                    <input id="dndEnd" type="time">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="row-label">URL blacklist</div>
+                <div class="row-control">
+                    <textarea id="blacklist" rows="4" placeholder="https://example.com (one per line)"></textarea>
+                </div>
+            </div>
+        </section>
+
+        <div class="save-bar">
+            <div class="save-bar-inner">
+                <button id="save">Save</button>
+            </div>
         </div>
-
-        <div id="random-interval">
-            <label for="intervalMin">Min (ms)</label>
-            <input id="intervalMin" type="Number" value="3000" min="1000">
-            <label for="intervalMax">Max (ms)</label>
-            <input id="intervalMax" type="Number" value="15000" min="1000">
-        </div>
-
-        <h3>Duration</h3>
-        <label for="duration">Popup duration (ms)</label>
-        <input id="duration" type="Number" value="3000" min="500">
-
-        <h3>Popup Size</h3>
-        <label for="popupSize">Size (px, max 800)</label>
-        <input id="popupSize" type="Number" value="400" min="100" max="800">
-
-        <h3>Characters</h3>
-        <label><input type="radio" name="charMode" value="shuffle"> Shuffled deck</label>
-        <label><input type="radio" name="charMode" value="weighted"> Weighted</label>
-        <label><input type="radio" name="charMode" value="single"> Single character</label>
-
-        <ul id="character-list"></ul>
-
-        <h3>Behaviour</h3>
-        <label><input type="checkbox" id="mute"> Mute</label>
-
-        <label for="dndStart">Do not disturb from</label>
-        <input id="dndStart" type="time">
-        <label for="dndEnd">to</label>
-        <input id="dndEnd" type="time">
-
-        <label for="blacklist">URL blacklist (one per line)</label>
-        <textarea id="blacklist" rows="4" placeholder="https://example.com"></textarea>
-
-        <button id="save">Save</button>
 
         <script type="module" src="options.js"></script>
     </body>

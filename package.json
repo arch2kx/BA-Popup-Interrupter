@@ -1,0 +1,18 @@
+{
+  "devDependencies": {
+    "@types/chrome": "^0.1.43",
+    "@types/node": "^25.9.2",
+    "typescript": "^6.0.3"
+  },
+  "name": "annoying-ba-browser-popup",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A browser extension that annoys you periodically.",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

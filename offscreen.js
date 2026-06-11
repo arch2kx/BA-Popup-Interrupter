@@ -1,6 +1,8 @@
+"use strict";
 chrome.runtime.onMessage.addListener((message) => {
-    if (message.type !== "play-sound-offscreen") return;
-
+    if (message.type !== "play-sound-offscreen")
+        return;
     const audio = new Audio(message.sound);
-    audio.play().catch(() => {});
+    audio.play().catch(() => { });
 });
+//# sourceMappingURL=offscreen.js.map

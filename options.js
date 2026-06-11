@@ -3,9 +3,9 @@ function updateintervalui(mode) {
     const fixedel = document.getElementById("fixed-interval");
     const randomel = document.getElementById("random-interval");
     if (fixedel)
-        fixedel.style.display = mode === "fixed" ? "block" : "none";
+        fixedel.style.display = mode === "fixed" ? "grid" : "none";
     if (randomel)
-        randomel.style.display = mode === "random" ? "block" : "none";
+        randomel.style.display = mode === "random" ? "grid" : "none";
 }
 function updatecharacterui(mode) {
     document.querySelectorAll(".weight-control").forEach(el => {
@@ -123,7 +123,7 @@ if (savebtn) {
         const durationel = document.getElementById("duration");
         const duration = Number(durationel?.value ?? 0);
         const popupsizeel = document.getElementById("popupSize");
-        const popupSize = Math.min(800, Number(popupsizeel?.value ?? 0));
+        const popupSize = Math.min(600, Number(popupsizeel?.value ?? 0));
         const charmoderadio = document.querySelector("[name=charMode]:checked");
         const charMode = (charmoderadio ? charmoderadio.value : "shuffle");
         const muteel = document.getElementById("mute");

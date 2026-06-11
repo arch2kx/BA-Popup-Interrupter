@@ -1,9 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "BA Pop-up Interrupter",
+  "name": "BA Pop-Up Interrupter",
+  "description": "Annoys you with pop-ups of Blue Archive characters periodically.",
   "version": "1.0",
 
   "action": {
+    "default_icon": "images/arona-ext-icon.png",
     "default_popup": "popup.html"
   },
 
@@ -14,11 +16,18 @@
     "type": "module"
   },
 
-  "permissions": ["storage", "offscreen", "windows", "alarms", "tabs"],
+  "permissions": ["storage", "offscreen", "alarms", "tabs", "scripting"],
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
 
   "web_accessible_resources": [
     {
-      "resources": ["images/*.png", "sounds/*.mp3", "offscreen.html", "overlay.html"],
+      "resources": ["images/*.png", "sounds/*.mp3", "offscreen.html"],
       "matches": ["<all_urls>"]
     }
   ]
