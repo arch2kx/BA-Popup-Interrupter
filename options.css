@@ -1,22 +1,29 @@
 /* ── Theme ── */
 :root {
+    /* Tells the browser to draw native form-control chrome (checkbox/radio
+       borders, unchecked fill, spinner buttons) in its light variant. */
+    color-scheme: light;
     --bg: #f9fafb;
     --surface: #ffffff;
     --text: #181818;
     --text-muted: #868686;
     --border: #dcdcdc;
     --accent: #1a99dc;
+    --halo-glow: rgba(26, 153, 220, 0.28);
     --radius: 6px;
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
+        color-scheme: dark;
         --bg: #161616;
         --surface: #222222;
         --text: #f7f7f7;
         --text-muted: #a9a9a9;
         --border: #363636;
         --accent: #1a99dc;
+        /* Glow carries further on a dark ground, so it needs less opacity. */
+        --halo-glow: rgba(26, 153, 220, 0.22);
     }
 }
 
@@ -37,7 +44,10 @@ body {
 h2 {
     max-width: 560px;
     margin: 0 auto 16px;
-    font-size: 30px;
+    font-family: "DynaPuff", "Noto Sans", sans-serif;
+    font-weight: 450;
+    font-size: 3.5rem;
+    letter-spacing: 0.5px;
 }
 
 /* ── Sections / rows ── */
@@ -114,11 +124,139 @@ textarea:focus {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
+/* ── Checkboxes & radios ──
+   Left as native browser controls rather than custom-drawn: accent-color
+   recolors the checked state, and color-scheme (set on :root above) tells
+   the browser to draw their native chrome — border, unchecked fill — in the
+   dark variant instead of a light-default control stranded on a dark page. */
 input[type="radio"],
 input[type="checkbox"] {
-    width: 15px;
-    height: 15px;
     accent-color: var(--accent);
+    cursor: pointer;
+}
+
+input[type="radio"]:focus-visible,
+input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* ── Volume slider ──
+   Thumb is a hollow halo riding a hairline track, with the value bubble
+   tracking it. --pct is a unitless 0-100 set from options.ts; both the fill
+   and the bubble offset derive from it, so they can never disagree. */
+.slider {
+    --thumb-size: 16px;
+    position: relative;
+    flex: 1;
+    max-width: 220px;
+    padding-top: 26px;
+}
+
+.slider output {
+    position: absolute;
+    top: 0;
+    /* Centre of the thumb: half a thumb in from the left, then across the
+       track's usable width. translateX centres the bubble on that point. */
+    left: calc(var(--thumb-size) / 2 + var(--pct, 100) * (100% - var(--thumb-size)) / 100);
+    transform: translateX(-50%);
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* Tail pointing down at the thumb. */
+.slider output::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: var(--accent);
+}
+
+input[type="range"] {
+    appearance: none;
+    -webkit-appearance: none;
+    display: block;
+    width: 100%;
+    height: var(--thumb-size);
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(
+        to right,
+        var(--accent) 0 calc(var(--pct, 100) * 1%),
+        var(--border) calc(var(--pct, 100) * 1%) 100%
+    );
+}
+
+input[type="range"]::-moz-range-track {
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(
+        to right,
+        var(--accent) 0 calc(var(--pct, 100) * 1%),
+        var(--border) calc(var(--pct, 100) * 1%) 100%
+    );
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: var(--thumb-size);
+    height: var(--thumb-size);
+    margin-top: -6px;
+    border-radius: 50%;
+    border: 2.5px solid var(--accent);
+    background: var(--surface);
+    box-shadow: 0 0 0 3px var(--halo-glow);
+    transition: box-shadow 0.15s ease;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: var(--thumb-size);
+    height: var(--thumb-size);
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 2.5px solid var(--accent);
+    background: var(--surface);
+    box-shadow: 0 0 0 3px var(--halo-glow);
+    transition: box-shadow 0.15s ease;
+}
+
+input[type="range"]:hover::-webkit-slider-thumb,
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 5px var(--halo-glow), 0 0 12px var(--halo-glow);
+}
+
+input[type="range"]:hover::-moz-range-thumb,
+input[type="range"]:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 5px var(--halo-glow), 0 0 12px var(--halo-glow);
+}
+
+input[type="range"]:focus {
+    outline: none;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+    input[type="range"]::-webkit-slider-thumb,
+    input[type="range"]::-moz-range-thumb {
+        transition: none;
+    }
 }
 
 textarea {

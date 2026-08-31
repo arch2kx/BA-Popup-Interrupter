@@ -7,7 +7,10 @@ const openOptionsBtn = document.getElementById("open-options") as HTMLButtonElem
 
 async function getActiveTabUrl(): Promise<string | null> {
     const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-    return tab?.url ?? null;
+    const url = tab?.url ?? null;
+    if (!url) return null;
+    const { protocol } = new URL(url);
+    return protocol === "http:" || protocol === "https:" ? url : null;
 }
 
 function originOf(url: string): string {
@@ -22,7 +25,7 @@ async function init(): Promise<void> {
     const settings = await getSettings();
 
     if (toggleBtn) {
-        toggleBtn.textContent = settings.enabled ? "ON" : "OFF";
+        toggleBtn.textContent = settings.enabled ? "Enabled" : "Disabled";
     }
 
     if (muteInput) {
@@ -41,7 +44,7 @@ if (toggleBtn) {
     toggleBtn.addEventListener("click", async () => {
         const settings = await getSettings();
         const enabled = !settings.enabled;
-        toggleBtn.textContent = enabled ? "ON" : "OFF";
+        toggleBtn.textContent = enabled ? "Enabled" : "Disabled";
         await setSettings({ enabled });
     });
 }

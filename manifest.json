@@ -4,8 +4,27 @@
   "description": "Annoys you with pop-ups of Blue Archive characters periodically.",
   "version": "1.0",
 
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "ba-popup-interrupter@arch2kx.pages.dev",
+      "strict_min_version": "120.0"
+    }
+  },
+
+  "icons": {
+    "16": "images/icons/icon-16.png",
+    "32": "images/icons/icon-32.png",
+    "48": "images/icons/icon-48.png",
+    "128": "images/icons/icon-128.png"
+  },
+
   "action": {
-    "default_icon": "images/arona-ext-icon.png",
+    "default_icon": {
+      "16": "images/icons/icon-16.png",
+      "32": "images/icons/icon-32.png",
+      "48": "images/icons/icon-48.png",
+      "128": "images/icons/icon-128.png"
+    },
     "default_popup": "popup.html"
   },
 
@@ -27,7 +46,7 @@
 
   "web_accessible_resources": [
     {
-      "resources": ["images/*.png", "sounds/*.mp3", "offscreen.html"],
+      "resources": ["images/actual-popup/*.png", "sounds/*.mp3", "offscreen.html"],
       "matches": ["<all_urls>"]
     }
   ]

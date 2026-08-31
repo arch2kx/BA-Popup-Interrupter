@@ -2,8 +2,9 @@ export interface Character {
     name: string;
     image: string;
     sound: string;
+    gain: number;
 }
-export declare const CHARACTERS: Character[];
+export declare function getCharacters(): Promise<Character[]>;
 export interface Settings {
     enabled: boolean;
     intervalMode: "fixed" | "random";
@@ -17,6 +18,7 @@ export interface Settings {
     weights: number[];
     singleIndex: number;
     mute: boolean;
+    volume: number;
     dndStart: string;
     dndEnd: string;
     blacklist: string[];

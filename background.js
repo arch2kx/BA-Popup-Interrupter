@@ -1,4 +1,4 @@
-import { CHARACTERS, getSettings, isDnd, isBlacklisted } from "./shared.js";
+import { getCharacters, getSettings, isDnd, isBlacklisted } from "./shared.js";
 function shuffle(arr) {
     const a = [...arr];
     for (let i = a.length - 1; i > 0; i--) {
@@ -13,16 +13,36 @@ let deck = [];
 // Build a weighted deck by repeating each character index by its weight,
 // then shuffling. e.g. weights [3,1,1] means the first character appears
 // 3 out of 5 draws.
-function rebuildDeck(weights) {
-    const expanded = CHARACTERS.flatMap((_, i) => Array(weights[i] || 1).fill(i));
+function rebuildDeck(characters, weights) {
+    const expanded = characters.flatMap((_, i) => Array(weights[i] || 1).fill(i));
     deck = shuffle(expanded);
 }
-function nextIndex(charMode, weights, singleIndex) {
+function nextIndex(characters, charMode, weights, singleIndex) {
     if (charMode === "single")
         return singleIndex || 0;
     if (deck.length === 0)
-        rebuildDeck(weights);
+        rebuildDeck(characters, weights);
     return deck.pop();
+}
+// Firefox fallback: cache one Audio element per sound file and reuse it,
+// instead of constructing a fresh one on every trigger. Also lets us
+// actually preload the sound instead of starting a network fetch from zero
+// each time the alarm fires.
+const audioCache = new Map();
+function getCachedAudio(soundUrl) {
+    let audio = audioCache.get(soundUrl);
+    if (!audio) {
+        audio = new Audio(soundUrl);
+        audio.preload = "auto";
+        audioCache.set(soundUrl, audio);
+    }
+    return audio;
+}
+function playSound(soundUrl, volume) {
+    const audio = getCachedAudio(soundUrl);
+    audio.currentTime = 0;
+    audio.volume = volume;
+    audio.play().catch(() => { });
 }
 async function ensureOffscreenDocument() {
     const existing = await chrome.offscreen.hasDocument();
@@ -52,10 +72,10 @@ async function showPopupInTab(tabId, image, duration, size) {
         }
     }
 }
-async function triggerPopup() {
-    const s = await getSettings();
-    if (!s.enabled)
-        return;
+// Every reason to skip a popup lives in here, so it can return early freely.
+// Keeping the reschedule out of this function is what makes the alarm chain
+// impossible to break by adding another skip condition later.
+async function maybeShowPopup(s) {
     if (isDnd(s.dndStart, s.dndEnd))
         return;
     const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
@@ -63,27 +83,53 @@ async function triggerPopup() {
         return;
     if (isBlacklisted(tab.url, s.blacklist))
         return;
-    const index = nextIndex(s.charMode, s.weights, s.singleIndex);
-    const character = CHARACTERS[index];
+    const characters = await getCharacters();
+    if (characters.length === 0)
+        return; // bad or missing characters.json
+    const index = nextIndex(characters, s.charMode, s.weights, s.singleIndex);
+    const character = characters[index];
+    if (!character)
+        return; // singleIndex past a shrunken roster
     const imageUrl = s.imageOverrides[index]
         ? s.imageOverrides[index]
         : chrome.runtime.getURL(character.image);
     const soundUrl = chrome.runtime.getURL(character.sound);
     const duration = s.duration || 3000;
-    const size = Math.min(800, s.popupSize || 400);
+    const size = Math.min(600, s.popupSize || 400);
     showPopupInTab(tab.id, imageUrl, duration, size);
     if (!s.mute) {
+        // User volume scaled by the character's equalization gain, clamped
+        // because HTMLMediaElement.volume throws outside 0..1.
+        const volume = Math.min(1, Math.max(0, (s.volume ?? 1) * (character.gain ?? 1)));
         if (chrome.offscreen) {
             // Chrome: play via an offscreen document (service workers have no audio).
             await ensureOffscreenDocument();
-            chrome.runtime.sendMessage({ type: "play-sound-offscreen", sound: soundUrl });
+            chrome.runtime.sendMessage({ type: "play-sound-offscreen", sound: soundUrl, volume });
         }
         else {
             // Firefox-style background pages have direct DOM access.
-            new Audio(soundUrl).play().catch(() => { });
+            playSound(soundUrl, volume);
         }
     }
-    scheduleNext(s);
+}
+async function triggerPopup() {
+    const s = await getSettings();
+    // "Disabled" is the one skip that deliberately does NOT reschedule:
+    // rescheduling would wake the service worker forever to do nothing.
+    // Re-enabling writes to storage, and the onChanged listener below
+    // restarts the chain.
+    if (!s.enabled)
+        return;
+    try {
+        await maybeShowPopup(s);
+    }
+    finally {
+        // Every other skip — DND, no tab, blacklisted site, bad roster — is
+        // transient and produces no storage write when it clears. Nothing
+        // else would ever restart the chain, so it has to keep itself alive.
+        // finally also covers an unexpected throw from the chrome APIs.
+        scheduleNext(s);
+    }
 }
 // For random mode, pick a fresh random delay each time.
 // For fixed mode, use the saved interval.
@@ -105,12 +151,24 @@ function scheduleNext(s) {
     ms = Math.max(ms, 1000);
     chrome.alarms.create("popup-alarm", { delayInMinutes: ms / 60000 });
 }
-getSettings().then(scheduleNext);
+// Re-arms the chain from stored settings. Clears the alarm when disabled so
+// the service worker stops waking at all, rather than waking only to find
+// !enabled and bail.
+function resyncAlarm() {
+    getSettings().then((s) => {
+        if (s.enabled)
+            scheduleNext(s);
+        else
+            chrome.alarms.clear("popup-alarm");
+    });
+}
+resyncAlarm();
 chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === "popup-alarm")
-        triggerPopup();
+    if (alarm.name !== "popup-alarm")
+        return;
+    // triggerPopup's finally has already rescheduled by the time this can
+    // reject, so catching here only keeps it out of the unhandled-rejection log.
+    triggerPopup().catch(err => console.error("popup trigger failed", err));
 });
-chrome.storage.onChanged.addListener(() => {
-    getSettings().then(scheduleNext);
-});
+chrome.storage.onChanged.addListener(resyncAlarm);
 //# sourceMappingURL=background.js.map

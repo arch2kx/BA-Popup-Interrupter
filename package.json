@@ -10,6 +10,9 @@
   "description": "A browser extension that annoys you periodically.",
   "main": "background.js",
   "scripts": {
+    "gen:characters": "node scripts/gen-characters.mjs",
+    "prebuild": "npm run gen:characters",
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

@@ -2,13 +2,29 @@ export interface Character {
     name: string;
     image: string;
     sound: string;
+    // Per-character loudness equalization, measured at build time. Always
+    // <= 1, because HTMLMediaElement.volume can only attenuate.
+    gain: number;
 }
 
-export const CHARACTERS: Character[] = [
-    { name: "mika",    image: "images/mika.png",    sound: "sounds/mika-ok.mp3" },
-    { name: "hoshino", image: "images/hoshino.png", sound: "sounds/hoshino-uhee.mp3" },
-    { name: "izuna",   image: "images/izuna.png",   sound: "sounds/izuna-nin-nin.mp3" }
-];
+// characters.json is generated from the files on disk by
+// scripts/gen-characters.mjs (npm run gen:characters). Don't edit it by hand —
+// drop an image in images/actual-popup/ and a matching sound in sounds/, then
+// rebuild.
+let charactersPromise: Promise<Character[]> | null = null;
+
+export function getCharacters(): Promise<Character[]> {
+    if (!charactersPromise) {
+        charactersPromise = fetch(chrome.runtime.getURL("characters.json"))
+            .then(res => res.json() as Promise<Character[]>)
+            .catch((err) => {
+                console.error("failed to load characters.json", err);
+                charactersPromise = null;   // let the next call retry
+                return [];
+            });
+    }
+    return charactersPromise;
+}
 
 export interface Settings {
     enabled: boolean;
@@ -23,6 +39,7 @@ export interface Settings {
     weights: number[];
     singleIndex: number;
     mute: boolean;
+    volume: number;
     dndStart: string;
     dndEnd: string;
     blacklist: string[];
@@ -38,9 +55,12 @@ export const DEFAULT_SETTINGS: Settings = {
     popupSize: 400,
     charMode: "shuffle",
     imageOverrides: [],
-    weights: [1, 1, 1],
+    // Left empty on purpose: both consumers fall back to 1 for a missing
+    // index, so this stays correct no matter how many characters exist.
+    weights: [],
     singleIndex: 0,
     mute: false,
+    volume: 1,
     dndStart: "",
     dndEnd: "",
     blacklist: []
@@ -48,10 +68,21 @@ export const DEFAULT_SETTINGS: Settings = {
 
 // chrome.storage.local.get accepts an object of defaults: any key missing
 // from storage is filled in from this object in the result.
+function isValidOrigin(entry: string): boolean {
+    try {
+        const { protocol, origin } = new URL(entry);
+        return (protocol === "http:" || protocol === "https:") && origin !== "null";
+    } catch {
+        return false;
+    }
+}
+
 export function getSettings(): Promise<Settings> {
     return new Promise((resolve) => {
         chrome.storage.local.get(DEFAULT_SETTINGS as unknown as Record<string, unknown>, (res) => {
-            resolve(res as unknown as Settings);
+            const settings = res as unknown as Settings;
+            settings.blacklist = settings.blacklist.filter(isValidOrigin);
+            resolve(settings);
         });
     });
 }

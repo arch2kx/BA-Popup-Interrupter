@@ -1,0 +1,38 @@
+[
+    {
+        "name": "hoshino",
+        "image": "images/actual-popup/hoshino.png",
+        "sound": "sounds/hoshino-uhee.mp3",
+        "gain": 0.582
+    },
+    {
+        "name": "izuna",
+        "image": "images/actual-popup/izuna.png",
+        "sound": "sounds/izuna-nin-nin.mp3",
+        "gain": 1
+    },
+    {
+        "name": "kurumi",
+        "image": "images/actual-popup/kurumi.png",
+        "sound": "sounds/kurumi-battle-buffed.mp3",
+        "gain": 0.75
+    },
+    {
+        "name": "mika",
+        "image": "images/actual-popup/mika.png",
+        "sound": "sounds/mika-ok.mp3",
+        "gain": 0.55
+    },
+    {
+        "name": "niko",
+        "image": "images/actual-popup/niko.png",
+        "sound": "sounds/niko-battle-buff-self.mp3",
+        "gain": 0.733
+    },
+    {
+        "name": "otogi",
+        "image": "images/actual-popup/otogi.png",
+        "sound": "sounds/otogi-battle-tac-action.mp3",
+        "gain": 0.733
+    }
+]

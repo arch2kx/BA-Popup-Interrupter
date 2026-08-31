@@ -3,6 +3,8 @@
     <head>
         <meta charset="utf-8">
         <title>Settings</title>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=DynaPuff:wght@400..700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="options.css">
     </head>
     <body>
@@ -74,6 +76,16 @@
                 <div class="row-label"><label for="mute">Mute</label></div>
                 <div class="row-control">
                     <input type="checkbox" id="mute">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="row-label"><label for="volume">Volume</label></div>
+                <div class="row-control">
+                    <div class="slider">
+                        <output id="volume-value" for="volume">100%</output>
+                        <input id="volume" type="range" min="0" max="100" step="1" value="100">
+                    </div>
                 </div>
             </div>
 

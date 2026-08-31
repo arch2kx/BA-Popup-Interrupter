@@ -1,4 +1,4 @@
-import { CHARACTERS, getSettings, setSettings } from "./shared.js";
+import { getCharacters, getSettings, setSettings } from "./shared.js";
 function updateintervalui(mode) {
     const fixedel = document.getElementById("fixed-interval");
     const randomel = document.getElementById("random-interval");
@@ -6,6 +6,18 @@ function updateintervalui(mode) {
         fixedel.style.display = mode === "fixed" ? "grid" : "none";
     if (randomel)
         randomel.style.display = mode === "random" ? "grid" : "none";
+}
+// Drives the readout and --pct, the unitless percentage the CSS uses for both
+// the track fill and the bubble's position. Chrome has no
+// ::-moz-range-progress equivalent, so the fill has to come from a gradient
+// stop computed here. Set on the wrapper so the bubble can read it too.
+function updatevolumeui(input) {
+    const label = document.getElementById("volume-value");
+    if (label)
+        label.textContent = `${input.value}%`;
+    const wrap = input.closest(".slider");
+    if (wrap)
+        wrap.style.setProperty("--pct", input.value);
 }
 function updatecharacterui(mode) {
     document.querySelectorAll(".weight-control").forEach(el => {
@@ -18,12 +30,12 @@ function updatecharacterui(mode) {
 // Renders one <li> per character into #character-list, with an image
 // override field, a weight field (weighted mode), and a "use this
 // character" radio (single mode).
-function rendercharacters(settings) {
+function rendercharacters(settings, characters) {
     const list = document.getElementById("character-list");
     if (!list)
         return;
     list.innerHTML = "";
-    CHARACTERS.forEach((character, i) => {
+    characters.forEach((character, i) => {
         const li = document.createElement("li");
         const img = document.createElement("img");
         img.src = chrome.runtime.getURL(character.image);
@@ -32,9 +44,11 @@ function rendercharacters(settings) {
         const name = document.createElement("span");
         name.textContent = character.name;
         li.appendChild(name);
+        // The save handler and background.ts both read imageOverrides by
+        // index, so this input has to exist for that path to do anything.
         const urlInput = document.createElement("input");
         urlInput.type = "text";
-        urlInput.placeholder = "Image URL override";
+        urlInput.placeholder = "custom image URL (optional)";
         urlInput.dataset["urlIndex"] = String(i);
         urlInput.value = settings.imageOverrides[i] ?? "";
         li.appendChild(urlInput);
@@ -72,7 +86,7 @@ document.querySelectorAll("[name=intervalMode]").forEach(r => {
 document.querySelectorAll("[name=charMode]").forEach(r => {
     r.addEventListener("change", () => updatecharacterui(r.value));
 });
-getSettings().then((settings) => {
+Promise.all([getSettings(), getCharacters()]).then(([settings, characters]) => {
     const intervalmoderadio = document.querySelector(`[name=intervalMode][value="${settings.intervalMode}"]`);
     if (intervalmoderadio)
         intervalmoderadio.checked = true;
@@ -95,10 +109,16 @@ getSettings().then((settings) => {
     const charmoderadio = document.querySelector(`[name=charMode][value="${settings.charMode}"]`);
     if (charmoderadio)
         charmoderadio.checked = true;
-    rendercharacters(settings);
+    rendercharacters(settings, characters);
     const muteInput = document.getElementById("mute");
     if (muteInput)
         muteInput.checked = settings.mute;
+    const volumeinput = document.getElementById("volume");
+    if (volumeinput) {
+        volumeinput.value = String(Math.round(settings.volume * 100));
+        updatevolumeui(volumeinput);
+        volumeinput.addEventListener("input", () => updatevolumeui(volumeinput));
+    }
     const dndstartinput = document.getElementById("dndStart");
     if (dndstartinput)
         dndstartinput.value = settings.dndStart;
@@ -128,6 +148,8 @@ if (savebtn) {
         const charMode = (charmoderadio ? charmoderadio.value : "shuffle");
         const muteel = document.getElementById("mute");
         const mute = muteel ? muteel.checked : false;
+        const volumeel = document.getElementById("volume");
+        const volume = volumeel ? Number(volumeel.value) / 100 : 1;
         const dndstartel = document.getElementById("dndStart");
         const dndStart = dndstartel ? dndstartel.value : "";
         const dndendel = document.getElementById("dndEnd");
@@ -154,7 +176,7 @@ if (savebtn) {
             intervalMode, interval, intervalMin, intervalMax,
             duration, popupSize,
             charMode, imageOverrides, weights, singleIndex,
-            mute, dndStart, dndEnd, blacklist
+            mute, volume, dndStart, dndEnd, blacklist
         }).then(() => {
             const btn = document.getElementById("save");
             if (btn) {

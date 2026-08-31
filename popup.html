@@ -1,24 +1,48 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>BA Pop-Up</title>
-        <link rel="stylesheet" href="popup.css">
-    </head>
-    <body>
-        <header>
-            <h1>BA Pop-Up Interrupter</h1>
-            <p class="credit">Created by arch2kx</p>
-        </header>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BA Pop-Up</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
 
-        <div class="controls">
-            <button id="toggle">OFF</button>
-            <label class="checkbox-row"><input type="checkbox" id="mute"> Mute</label>
-            <button id="block-site">Block this site</button>
-            <button id="open-options">Settings</button>
-        </div>
+  <!-- The Header basically -->
+  <img src="images/menu-popup/ext-logo.png" class="logo-banner">
+  </div>
 
-        <script type="module" src="popup.js"></script>
-    </body>
+  <div class="footer">
+    <div class="profile">
+      <img src="images/menu-popup/arch2kx-pfp.png" alt="Arch Profile Picture">
+      <span>Created by arch2kx</span>
+    </div>
+  </div>
+  </header>
+
+    <div class="controls">
+      <label class="toggle">
+          <input type="checkbox" id="mute">
+          <span class="toggle-track"></span>
+          Mute
+      </label>
+      <button id="toggle">Disabled</button>
+      <button class="button-2" id="block-site">Block this site</button>
+      <button class="button-2" id="open-options">Settings</button>
+    </div>
+    <div class="icons">
+      <a href="https://github.com/arch2kx/Yet-Another-Sechify-Fork" target="_blank" rel="noopener">
+          <img src="images/menu-popup/github.png" alt="Github">
+      </a>
+      <a href="https://www.youtube.com/@YourLocalKoyuki" target="_blank" rel="noopener">
+          <img src="images/menu-popup/youtube.png" alt="YouTube">
+      </a>
+      <a href="https://ko-fi.com/archkun" target="_blank" rel="noopener">
+          <img src="images/menu-popup/kofi.png" alt="Ko-fi">
+      </a>
+    </div>
+    <footer>v1.0</footer>
+    <script type="module" src="popup.js"></script>
+  </body>
 </html>

@@ -1,8 +1,20 @@
-export const CHARACTERS = [
-    { name: "mika", image: "images/mika.png", sound: "sounds/mika-ok.mp3" },
-    { name: "hoshino", image: "images/hoshino.png", sound: "sounds/hoshino-uhee.mp3" },
-    { name: "izuna", image: "images/izuna.png", sound: "sounds/izuna-nin-nin.mp3" }
-];
+// characters.json is generated from the files on disk by
+// scripts/gen-characters.mjs (npm run gen:characters). Don't edit it by hand —
+// drop an image in images/actual-popup/ and a matching sound in sounds/, then
+// rebuild.
+let charactersPromise = null;
+export function getCharacters() {
+    if (!charactersPromise) {
+        charactersPromise = fetch(chrome.runtime.getURL("characters.json"))
+            .then(res => res.json())
+            .catch((err) => {
+            console.error("failed to load characters.json", err);
+            charactersPromise = null; // let the next call retry
+            return [];
+        });
+    }
+    return charactersPromise;
+}
 export const DEFAULT_SETTINGS = {
     enabled: false,
     intervalMode: "fixed",
@@ -13,19 +25,33 @@ export const DEFAULT_SETTINGS = {
     popupSize: 400,
     charMode: "shuffle",
     imageOverrides: [],
-    weights: [1, 1, 1],
+    // Left empty on purpose: both consumers fall back to 1 for a missing
+    // index, so this stays correct no matter how many characters exist.
+    weights: [],
     singleIndex: 0,
     mute: false,
+    volume: 1,
     dndStart: "",
     dndEnd: "",
     blacklist: []
 };
 // chrome.storage.local.get accepts an object of defaults: any key missing
 // from storage is filled in from this object in the result.
+function isValidOrigin(entry) {
+    try {
+        const { protocol, origin } = new URL(entry);
+        return (protocol === "http:" || protocol === "https:") && origin !== "null";
+    }
+    catch {
+        return false;
+    }
+}
 export function getSettings() {
     return new Promise((resolve) => {
         chrome.storage.local.get(DEFAULT_SETTINGS, (res) => {
-            resolve(res);
+            const settings = res;
+            settings.blacklist = settings.blacklist.filter(isValidOrigin);
+            resolve(settings);
         });
     });
 }
