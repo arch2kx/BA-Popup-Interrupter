@@ -62,13 +62,16 @@ async function showPopupInTab(tabId, image, duration, size) {
     try {
         await chrome.tabs.sendMessage(tabId, message);
     }
-    catch {
+    catch (firstErr) {
         try {
             await chrome.scripting.executeScript({ target: { tabId }, files: ["content.js"] });
             await chrome.tabs.sendMessage(tabId, message);
         }
-        catch {
-            // Page doesn't allow content scripts (e.g. chrome:// pages, the Web Store).
+        catch (secondErr) {
+            // DEBUG: temporary logging to find the "sound plays, no popup" cause.
+            // Page doesn't allow content scripts (e.g. chrome:// pages, the Web Store)
+            // is the expected case; anything else here is the actual bug.
+            console.warn("[BA popup] showPopupInTab failed", { tabId, firstErr, secondErr });
         }
     }
 }
