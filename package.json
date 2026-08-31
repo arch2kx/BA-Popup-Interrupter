@@ -2,9 +2,10 @@
   "devDependencies": {
     "@types/chrome": "^0.1.43",
     "@types/node": "^25.9.2",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "web-ext": "^10.6.0"
   },
-  "name": "annoying-ba-browser-popup",
+  "name": "ba-popup-interrupter",
   "version": "1.0.0",
   "type": "module",
   "description": "A browser extension that annoys you periodically.",
@@ -13,6 +14,10 @@
     "gen:characters": "node scripts/gen-characters.mjs",
     "prebuild": "npm run gen:characters",
     "build": "tsc",
+    "lint:ext": "web-ext lint --config=web-ext-config.cjs",
+    "start:firefox": "web-ext run --config=web-ext-config.cjs",
+    "start:chrome": "web-ext run --target=chromium --config=web-ext-config.cjs",
+    "package": "web-ext build --config=web-ext-config.cjs --overwrite-dest",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
