@@ -4,10 +4,10 @@ A browser extension that periodically interrupts you with a pop-up (and sound) o
 
 ## Features
 
-- **Timed interruptions** — fixed interval or a random range, your choice
-- **Character selection** — shuffled deck (no repeats until the deck runs out), weighted odds per character, or lock it to a single character
-- **Per-character volume equalization** — clips are loudness-matched at build time so no character is jarringly louder than the rest
-- **Do Not Disturb window** — silence popups during a set time range
+- **Timed interruptions** give fixed interval or a random range, up to user
+- **Character selection** includes shuffled deck (no repeats until the deck runs out), weighted odds per character, or lock it to a single character
+- **Per-character volume equalization** makes clips loudness-matched at build time so no character is jarringly louder than the rest
+- **Do Not Disturb window** silences popups during a set time range
 - **Per-site blocking** — block the current site from the popup, or maintain a URL blacklist in settings
 - **Mute toggle, custom popup size/duration, custom image overrides** per character
 
@@ -33,7 +33,7 @@ The extension should be in Chrome Web Store / Firefox Addons if they are (or are
 npm run build   # regenerates characters.json from images/sounds, then compiles TypeScript
 ```
 
-Adding a character is just dropping in a matching image and sound file — see the convention documented at the top of [`scripts/gen-characters.mjs`](scripts/gen-characters.mjs):
+Adding a character is just dropping in a matching image and sound file, for more information see the convention documented at the top of [`scripts/gen-characters.mjs`](scripts/gen-characters.mjs):
 
 ```
 images/actual-popup/<name>.png
