@@ -6,7 +6,7 @@
     "web-ext": "^10.6.0"
   },
   "name": "ba-popup-interrupter",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "description": "A browser extension that annoys you periodically.",
   "main": "background.js",
