@@ -1,0 +1,58 @@
+@keyframes ba-popup-interrupter-pop-in {
+    0% {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+    70% {
+        opacity: 1;
+        transform: scale(1.08);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes ba-popup-interrupter-pop-out {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+}
+
+@keyframes ba-popup-interrupter-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes ba-popup-interrupter-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.ba-popup-interrupter-img {
+    opacity: 0;
+    transform-origin: center center;
+    will-change: transform, opacity;
+}
+
+.ba-popup-interrupter-img.ba-popup-interrupter-in {
+    animation: ba-popup-interrupter-pop-in 200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.ba-popup-interrupter-img.ba-popup-interrupter-out {
+    animation: ba-popup-interrupter-pop-out 140ms ease-in forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ba-popup-interrupter-img.ba-popup-interrupter-in {
+        animation: ba-popup-interrupter-fade-in 120ms linear forwards;
+    }
+    .ba-popup-interrupter-img.ba-popup-interrupter-out {
+        animation: ba-popup-interrupter-fade-out 120ms linear forwards;
+    }
+}

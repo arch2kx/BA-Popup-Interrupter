@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "BA Pop-Up Interrupter",
   "description": "Annoys you with pop-ups of Blue Archive characters periodically.",
-  "version": "1.0.2",
+  "version": "1.0.3",
 
   "browser_specific_settings": {
     "gecko": {
@@ -40,10 +40,13 @@
 
   "permissions": ["storage", "offscreen", "alarms", "tabs", "scripting"],
 
+  "host_permissions": ["<all_urls>"],
+
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "css": ["content.css"]
     }
   ],
 

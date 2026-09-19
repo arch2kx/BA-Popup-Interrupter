@@ -79,3 +79,6 @@ if (openOptionsBtn) {
 }
 
 init();
+
+const versionEl = document.getElementById("version");
+if (versionEl) versionEl.textContent = `v${chrome.runtime.getManifest().version}`;
