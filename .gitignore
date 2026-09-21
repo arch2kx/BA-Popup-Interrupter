@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# TypeScript/JavaScript Build Outputs
+*.js
+*.js.map
+*.d.ts
+*.d.ts.map
+
+# Development/Build Tool Clutter
+.DS_Store
+web-ext-artifacts/
+.web-ext/
+npm-debug.log*
+
+# Exception (Keep config file)
+!web-ext-config.cjs
+
