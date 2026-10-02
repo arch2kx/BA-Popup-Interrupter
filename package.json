@@ -12,6 +12,7 @@
   "main": "background.js",
   "scripts": {
     "gen:characters": "node scripts/gen-characters.mjs",
+    "clean": "rm -f *.js *.js.map *.d.ts *.d.ts.map",
     "prebuild": "npm run gen:characters",
     "build": "tsc",
     "build:firefox-manifest": "node scripts/build-firefox-manifest.mjs",
