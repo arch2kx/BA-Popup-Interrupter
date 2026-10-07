@@ -6,13 +6,14 @@
     "web-ext": "^10.6.0"
   },
   "name": "ba-popup-interrupter",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "type": "module",
   "description": "A browser extension that annoys you periodically.",
   "main": "background.js",
   "scripts": {
     "gen:characters": "node scripts/gen-characters.mjs",
     "clean": "rm -f *.js *.js.map *.d.ts *.d.ts.map",
+    "clean:all": "npm run clean && rm -rf node_modules",
     "prebuild": "npm run gen:characters",
     "build": "tsc",
     "build:firefox-manifest": "node scripts/build-firefox-manifest.mjs",

@@ -106,6 +106,7 @@ h2 {
 
 input[type="Number"],
 input[type="text"],
+input[type="search"],
 input[type="time"],
 textarea {
     font-family: "Noto Sans", sans-serif;
@@ -281,16 +282,66 @@ button:disabled {
 }
 
 /* ── Character list (options page) ── */
-#character-list {
-    list-style: none;
+
+/* An author rule like `display: flex` beats the browser's built-in
+   `[hidden] { display: none }`, so without this the hidden attribute would
+   do nothing on the flex rows below. */
+[hidden] {
+    display: none !important;
+}
+
+.character-picker {
     width: 100%;
+}
+
+#character-search {
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+#character-empty {
+    padding: 8px 0;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+#character-list details,
+.add-character {
+    border-top: 1px solid var(--border);
+}
+
+#character-list summary,
+.add-character summary {
+    padding: 8px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+}
+
+#character-list summary:focus-visible,
+.add-character summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.academy-count {
+    margin-left: 6px;
+    font-weight: normal;
+}
+
+#character-list ul {
+    list-style: none;
+    padding-bottom: 6px;
 }
 
 #character-list li {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
-    padding: 6px 0;
+    padding: 4px 0;
 }
 
 #character-list img {
@@ -301,18 +352,99 @@ button:disabled {
     flex-shrink: 0;
 }
 
-#character-list span {
+.character-name {
     font-family: "Noto Sans", sans-serif;
-    flex: 0 0 60px;
+    flex: 1;
     font-size: 14px;
     text-transform: capitalize;
 }
 
-#character-list input[type="text"] {
+/* Full width, so when shown it wraps onto its own line under the row. */
+.custom-fields {
+    flex: 0 0 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* A custom student's panel: gain on the left, remove on the right. */
+.custom-fields-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.file-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.file-field input[type="text"] {
     flex: 1;
+    min-width: 0;
+}
+
+.file-field button {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.add-character-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-bottom: 8px;
+}
+
+.add-character-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#custom-status {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.url-toggle {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.url-toggle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
 }
 
 /* ── per-character mode controls ── */
+.gain-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.gain-control label {
+    font-family: "Noto Sans", sans-serif;
+    margin: 0;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.gain-control input[type="Number"] {
+    width: 70px;
+}
+
+.gain-control .hint {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
 .weight-control,
 .single-control {
     display: flex;
@@ -346,8 +478,31 @@ button:disabled {
     border-top: 1px solid var(--border);
 }
 
+.secondary-button {
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+}
+
+.secondary-button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.danger-button:hover {
+    border-color: #e5484d;
+    color: #e5484d;
+}
+
+/* An auto margin soaks up the free space, pushing Save to the right while
+   Export and Import stay on the left. */
+#save {
+    margin-left: auto;
+}
+
 .save-bar-inner {
     display: flex;
+    gap: 8px;
     justify-content: flex-end;
     width: 100%;
     max-width: 560px;

@@ -1,38 +1,79 @@
 [
     {
         "name": "hoshino",
+        "academy": "Abydos",
         "image": "images/actual-popup/hoshino.png",
         "sound": "sounds/hoshino-uhee.mp3",
         "gain": 0.582
     },
     {
         "name": "izuna",
+        "academy": "Hyakkiyako",
         "image": "images/actual-popup/izuna.png",
         "sound": "sounds/izuna-nin-nin.mp3",
         "gain": 1
     },
     {
         "name": "kurumi",
+        "academy": "SRT",
         "image": "images/actual-popup/kurumi.png",
         "sound": "sounds/kurumi-battle-buffed.mp3",
         "gain": 0.75
     },
     {
         "name": "mika",
+        "academy": "Trinity",
         "image": "images/actual-popup/mika.png",
         "sound": "sounds/mika-ok.mp3",
         "gain": 0.55
     },
     {
         "name": "niko",
+        "academy": "SRT",
         "image": "images/actual-popup/niko.png",
         "sound": "sounds/niko-battle-buff-self.mp3",
         "gain": 0.733
     },
     {
         "name": "otogi",
+        "academy": "SRT",
         "image": "images/actual-popup/otogi.png",
         "sound": "sounds/otogi-battle-tac-action.mp3",
         "gain": 0.733
+    },
+    {
+        "name": "arisu",
+        "academy": "Millennium",
+        "image": "images/actual-popup/arisu.png",
+        "sound": "sounds/arisu-pan-paka-pan.mp3",
+        "gain": 0.468
+    },
+    {
+        "name": "miyu",
+        "academy": "SRT",
+        "image": "images/actual-popup/miyu.png",
+        "sound": "sounds/miyu-uuuu.mp3",
+        "gain": 0.813
+    },
+    {
+        "name": "shizuko",
+        "academy": "Hyakkiyako",
+        "image": "images/actual-popup/shizuko.png",
+        "sound": "sounds/shizuko-common-skill.mp3",
+        "gain": 0.525
+    },
+    {
+        "name": "hanako",
+        "academy": "Trinity",
+        "image": "images/actual-popup/hanako.png",
+        "sound": "sounds/hanako-battle-tactical-action-1.mp3",
+        "gain": 0.617
+    },
+    {
+        "name": "koharu",
+        "academy": "Trinity",
+        "image": "images/actual-popup/koharu.png",
+        "sound": "sounds/koharu-battle-shout-1.mp3",
+        "gain": 0.759
     }
 ]

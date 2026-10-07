@@ -6,10 +6,11 @@
 // to be baked at build time. This is that build step.
 //
 // Convention: images/actual-popup/<name>.png pairs with the sound in sounds/
-// named <name>.mp3 or <name>-<anything>.mp3.
+// named <name>.mp3 or <name>-<anything>.mp3. Each name also needs an entry in
+// scripts/academies.json, which the options page uses for grouping.
 
 import { spawnSync } from "node:child_process";
-import { readdirSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -18,6 +19,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const IMAGE_DIR = "images/actual-popup";
 const SOUND_DIR = "sounds";
 const OUTPUT = "characters.json";
+const ACADEMIES = "scripts/academies.json";
 
 // Images that live in the popup folder but aren't characters.
 const IGNORE = new Set(["sensei-placeholder"]);
@@ -56,18 +58,33 @@ function computeGains(characters) {
 
 const sounds = readdirSync(join(root, SOUND_DIR)).filter(f => f.endsWith(".mp3"));
 
-// Sorted so the output is stable: readdir order isn't guaranteed, and these
-// indices are what get persisted in settings as weights/singleIndex.
-const names = readdirSync(join(root, IMAGE_DIR))
+const academies = JSON.parse(readFileSync(join(root, ACADEMIES), "utf8"));
+
+const found = readdirSync(join(root, IMAGE_DIR))
     .filter(f => f.endsWith(".png"))
     .map(f => f.slice(0, -".png".length))
     .filter(name => !IGNORE.has(name))
     .sort();
 
+// Characters already in characters.json keep their position and new ones are
+// appended. Settings are keyed by name, so nothing depends on this order; it
+// just keeps the generated file's diffs small.
+const previous = existsSync(join(root, OUTPUT))
+    ? JSON.parse(readFileSync(join(root, OUTPUT), "utf8")).map(c => c.name)
+    : [];
+
+const names = [
+    ...previous.filter(name => found.includes(name)),
+    ...found.filter(name => !previous.includes(name))
+];
+
 const characters = [];
 const errors = [];
 
 for (const name of names) {
+    const academy = academies[name];
+    if (!academy) errors.push(`${name}: no academy set (add it to ${ACADEMIES})`);
+
     const matches = sounds.filter(f => f === `${name}.mp3` || f.startsWith(`${name}-`));
 
     if (matches.length === 0) {
@@ -81,6 +98,7 @@ for (const name of names) {
 
     characters.push({
         name,
+        academy,
         image: `${IMAGE_DIR}/${name}.png`,
         sound: `${SOUND_DIR}/${matches[0]}`
     });
@@ -100,4 +118,4 @@ characters.forEach((c, i) => { c.gain = gains[i]; });
 
 writeFileSync(join(root, OUTPUT), JSON.stringify(characters, null, 4) + "\n");
 console.log(`wrote ${OUTPUT} — ${characters.length} characters:`);
-for (const c of characters) console.log(`  ${c.name} (gain ${c.gain})`);
+for (const c of characters) console.log(`  ${c.name} (${c.academy}, gain ${c.gain})`);

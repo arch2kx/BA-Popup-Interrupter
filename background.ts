@@ -1,4 +1,4 @@
-import { getCharacters, getSettings, isDnd, isBlacklisted, type Character, type Settings } from "./shared.js";
+import { assetUrl, getAllCharacters, getSettings, isDnd, isBlacklisted, type Character, type Settings } from "./shared.js";
 
 function shuffle<T>(arr: T[]): T[] {
     const a = [...arr];
@@ -12,19 +12,36 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 let deck: number[] = [];
+let deckKey = "";
 
 // Build a weighted deck by repeating each character index by its weight,
-// then shuffling. e.g. weights [3,1,1] means the first character appears
-// 3 out of 5 draws.
-function rebuildDeck(characters: Character[], weights: number[]): void {
-    const expanded = characters.flatMap((_, i) => Array(weights[i] || 1).fill(i));
+// then shuffling. e.g. with three characters weighted 3, 1 and 1, the first
+// one appears 3 out of 5 draws.
+function rebuildDeck(characters: Character[], weights: Settings["weights"]): void {
+    const expanded = characters.flatMap((c, i) => Array(weights[c.name] || 1).fill(i));
     deck = shuffle(expanded);
 }
 
-function nextIndex(characters: Character[], charMode: Settings["charMode"], weights: number[], singleIndex: number): number {
-    if (charMode === "single") return singleIndex || 0;
-    if (deck.length === 0) rebuildDeck(characters, weights);
+function nextIndex(characters: Character[], s: Pick<Settings, "charMode" | "weights" | "singleName">): number {
+    if (s.charMode === "single") {
+        // findIndex returns -1 for a name that is unset or no longer in the
+        // roster, which falls back to the first character.
+        return Math.max(0, characters.findIndex(c => c.name === s.singleName));
+    }
+    // The deck holds positions in `characters`, so it is thrown away whenever
+    // the roster or the weights change (e.g. a custom student was removed),
+    // instead of dealing out positions that no longer mean the same thing.
+    const key = JSON.stringify(characters.map(c => [c.name, s.weights[c.name] || 1]));
+    if (deck.length === 0 || key !== deckKey) {
+        rebuildDeck(characters, s.weights);
+        deckKey = key;
+    }
     return deck.pop()!;
+}
+
+interface Clip {
+    sound: string;
+    volume: number;
 }
 
 // Firefox fallback: cache one Audio element per sound file and reuse it,
@@ -43,11 +60,16 @@ function getCachedAudio(soundUrl: string): HTMLAudioElement {
     return audio;
 }
 
-function playSound(soundUrl: string, volume: number): void {
-    const audio = getCachedAudio(soundUrl);
+// play() rejects when the clip can't be loaded (dead link, unsupported
+// format), which is what triggers the fallback.
+function playSound(clip: Clip, fallback?: Clip): void {
+    const audio = getCachedAudio(clip.sound);
     audio.currentTime = 0;
-    audio.volume = volume;
-    audio.play().catch(() => {});
+    audio.volume = clip.volume;
+    audio.play().catch(() => {
+        audioCache.delete(clip.sound);
+        if (fallback) playSound(fallback);
+    });
 }
 
 async function ensureOffscreenDocument(): Promise<void> {
@@ -91,34 +113,42 @@ async function maybeShowPopup(s: Settings): Promise<void> {
     if (!tab?.id || !tab.url) return;
     if (isBlacklisted(tab.url, s.blacklist)) return;
 
-    const characters = await getCharacters();
+    const characters = await getAllCharacters(s);
     if (characters.length === 0) return;   // bad or missing characters.json
 
-    const index     = nextIndex(characters, s.charMode, s.weights, s.singleIndex);
-    const character = characters[index];
-    if (!character) return;                // singleIndex past a shrunken roster
+    const character = characters[nextIndex(characters, s)];
+    if (!character) return;
 
-    const imageUrl  = s.imageOverrides[index]
-                        ? s.imageOverrides[index]!
-                        : chrome.runtime.getURL(character.image);
-    const soundUrl  = chrome.runtime.getURL(character.sound);
+    const imageUrl  = s.imageOverrides[character.name] || assetUrl(character.image);
     const duration  = s.duration || 3000;
     const size      = Math.min(600, s.popupSize || 400);
 
     showPopupInTab(tab.id, imageUrl, duration, size);
 
     if (!s.mute) {
-        // User volume scaled by the character's equalization gain, clamped
-        // because HTMLMediaElement.volume throws outside 0..1.
-        const volume = Math.min(1, Math.max(0, (s.volume ?? 1) * (character.gain ?? 1)));
+        // Clamped because HTMLMediaElement.volume throws outside 0..1.
+        const clamp = (v: number): number => Math.min(1, Math.max(0, v));
+        const userVolume = s.volume ?? 1;
+
+        // User volume scaled by the character's equalization gain.
+        const builtin: Clip = {
+            sound: assetUrl(character.sound),
+            volume: clamp(userVolume * (character.gain ?? 1))
+        };
+
+        // A custom clip has no measured gain, so it plays at the plain user
+        // volume. If it fails to load, the built-in sound plays instead.
+        const customUrl = s.audioOverrides[character.name];
+        const primary: Clip = customUrl ? { sound: customUrl, volume: clamp(userVolume) } : builtin;
+        const fallback = customUrl ? builtin : undefined;
 
         if (chrome.offscreen) {
             // Chrome: play via an offscreen document (service workers have no audio).
             await ensureOffscreenDocument();
-            chrome.runtime.sendMessage({ type: "play-sound-offscreen", sound: soundUrl, volume });
+            chrome.runtime.sendMessage({ type: "play-sound-offscreen", ...primary, fallback });
         } else {
             // Firefox-style background pages have direct DOM access.
-            playSound(soundUrl, volume);
+            playSound(primary, fallback);
         }
     }
 }
