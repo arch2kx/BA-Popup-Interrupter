@@ -17,6 +17,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
       - name: Build if a build script exists
         id: build
         run: |
@@ -28,8 +31,7 @@ jobs:
             elif [ -d build ]; then
               echo "dir=build" >> "$GITHUB_OUTPUT"
             else
-              echo "Build script ran but no dist/ or build/ folder was found"
-              exit 1
+              echo "dir=." >> "$GITHUB_OUTPUT"
             fi
           else
             echo "dir=." >> "$GITHUB_OUTPUT"
@@ -48,7 +50,11 @@ jobs:
         run: |
           ZIP="$GITHUB_WORKSPACE/bapi-${GITHUB_REF_NAME}.zip"
           cd "${{ steps.build.outputs.dir }}"
-          zip -r "$ZIP" . -x ".git/*" ".github/*" "node_modules/*" "*.zip"
+          zip -r "$ZIP" . \
+            -x ".git/*" ".github/*" "node_modules/*" "scripts/*" \
+            "*.zip" "*.map" "*.ts" "tsconfig*.json" \
+            "package.json" "package-lock.json" ".gitignore"
+          unzip -l "$ZIP"
 
       - uses: softprops/action-gh-release@v2
         with:
