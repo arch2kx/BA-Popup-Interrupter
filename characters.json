@@ -17,8 +17,8 @@
         "name": "kurumi",
         "academy": "SRT",
         "image": "images/actual-popup/kurumi.png",
-        "sound": "sounds/kurumi-battle-buffed.mp3",
-        "gain": 0.75
+        "sound": "sounds/kurumi-sugoi-janai.mp3",
+        "gain": 0.676
     },
     {
         "name": "mika",

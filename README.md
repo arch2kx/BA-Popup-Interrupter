@@ -42,7 +42,8 @@ Desktop only. Mobile isn't supported and there are no plans to add it.
 ## Development
 
 ```sh
-npm run build   # Regenerates characters.json from images/sounds, then compiles TypeScript
+npm run build     # Regenerates characters.json from images/sounds, then compiles TypeScript
+npm run package   # Builds once, then writes Chrome and Firefox zips to web-ext-artifacts/
 ```
 
 Adding a character is just dropping in a matching image and sound file, for more information see the convention documented at the top of [`scripts/gen-characters.mjs`](scripts/gen-characters.mjs):

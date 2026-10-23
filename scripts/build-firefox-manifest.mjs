@@ -19,7 +19,7 @@ const OUT_DIR = resolve(root, "..", "ba-popup-interrupter-dist-firefox");
 const EXCLUDE = new Set([
     "node_modules", ".git", "web-ext-artifacts",
     "scripts", "tsconfig.json", "package.json", "package-lock.json",
-    "README.md", "LICENSE", "web-ext-config.cjs", ".gitignore"
+    "README.md", "LICENSE", "web-ext-config.cjs", ".gitignore", "sync"
 ]);
 const EXCLUDE_EXT = [".ts", ".d.ts", ".d.ts.map", ".js.map"];
 

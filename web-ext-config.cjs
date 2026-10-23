@@ -13,6 +13,8 @@ module.exports = {
         "LICENSE",
         "scripts/**",
         "web-ext-config.cjs",
-        "web-ext-artifacts/**"
+        "web-ext-artifacts/**",
+        "sync",
+        "sync/**"
     ]
 };
